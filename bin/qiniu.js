@@ -9,7 +9,16 @@ const baseConfig = {
     accessKey: '',
     secretKey: '',
     bucket: '',
-    domain: ''
+    domain: '',
+    zone: '',
+}
+
+const zoneMap = {
+    huadong: qiniu.zone.Zone_z0,
+    huabei: qiniu.zone.Zone_z1,
+    huanan: qiniu.zone.Zone_z2,
+    beimei: qiniu.zone.Zone_na0,
+    asiz: qiniu.zone.Zone_as0,
 }
 
 const homedir = os.homedir();
@@ -20,8 +29,8 @@ const uploadFile = async (filePath, filename) => {
     const isRes = await getConfigFile()
     if (!isRes) await syncConfig()
     const data = await getConfig()
-    const { accessKey, secretKey, bucket, domain } = JSON.parse(data)
-    if (!secretKey || !accessKey || !bucket) {
+    const { accessKey, secretKey, bucket, domain, zone } = JSON.parse(data)
+    if (!secretKey || !accessKey || !bucket || !zone) {
         console.log(colors.red('【saver】 请检查配置文件: ' + basePath))
         return
     }
@@ -33,7 +42,7 @@ const uploadFile = async (filePath, filename) => {
     }
     const mac = new qiniu.auth.digest.Mac(accessKey, secretKey);
     const config = new qiniu.conf.Config();
-    config.zone = qiniu.zone.Zone_z0;
+    config.zone = zoneMap[zone];
     const putPolicy = new qiniu.rs.PutPolicy({ scope: bucket });
     const key = filename || path.basename(fileFullPath);
     const token = putPolicy.uploadToken(mac);
